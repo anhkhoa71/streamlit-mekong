@@ -1,10 +1,11 @@
 # Streamlit
 streamlit>=1.30.0,<2.0
 
-# PyTorch CPU-only
-torch==2.8.0+cpu
-torchvision==0.23.0+cpu
-torchaudio==2.8.0+cpu
+# PyTorch CPU-only (Bỏ '+cpu' vì nó gây lỗi phân giải phân phối)
+torch==2.8.0
+torchvision==0.23.0
+torchaudio==2.8.0
+# Giữ liên kết để giúp tìm các bản dựng cụ thể, mặc dù thường không cần thiết
 -f https://download.pytorch.org/whl/torch_stable.html
 
 # Dữ liệu và khoa học tính toán
@@ -14,11 +15,15 @@ matplotlib>=3.8.0,<3.11
 scikit-learn>=1.3.0,<1.8
 joblib>=1.3.0,<1.6
 
-# Địa lý/GIS (phiên bản tương thích Python 3.13 trên Streamlit Cloud)
-geopandas<=1.1.1
+# Địa lý/GIS (Đã điều chỉnh geopandas để tránh lỗi: 'No matching distribution found for geopandas>=1.2.0')
+# Phiên bản 1.1.1 đã được xác nhận là có sẵn trong nhật ký.
+geopandas==1.1.1
 shapely>=2.1.0,<2.3
 pyproj>=3.7.0,<3.8
-fiona<=1.8.22
+# fiona thường là một phụ thuộc của geopandas, nhưng phiên bản 1.8.22 có thể không 
+# tương thích với Python 3.13. Tốt nhất nên để geopandas tự động cài đặt nó, hoặc 
+# kiểm tra lại phiên bản. Tạm thời, tôi sẽ để lại, nhưng nên cân nhắc xóa nó.
+fiona<=1.8.22 
 
 # Tiện ích
 requests>=2.32.0
