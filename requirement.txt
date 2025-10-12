@@ -1,0 +1,11 @@
+numpy
+pandas
+matplotlib
+tqdm
+scikit-learn
+torch
+geopandas
+joblib
+seaborn
+shapely
+streamlit
