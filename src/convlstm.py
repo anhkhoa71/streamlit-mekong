@@ -1,64 +1,6 @@
-import os
-import numpy as np
 import torch
 import torch.nn as nn
-import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader
-from tqdm import tqdm
-import matplotlib.pyplot as plt
-import warnings
-warnings.filterwarnings('ignore')
 
-# ------------------- Dataset -------------------
-class FolderTimeSeriesDataset(Dataset):
-    """
-    PyTorch Dataset load từng file .npy từ folder:
-    dataset_ts/train/val/test
-        features/0000.npy
-        target/0000.npy
-    """
-    def __init__(self, root_dir, time_in=30, time_out=1):
-        self.feature_dir = os.path.join(root_dir, "features")
-        self.target_dir  = self.feature_dir
-
-        self.feature_files = sorted(os.listdir(self.feature_dir))
-        self.target_files  = sorted(os.listdir(self.target_dir))
-        assert len(self.feature_files) == len(self.target_files), "features != target"
-
-        self.time_in = time_in
-        self.time_out = time_out
-
-        # Tạo danh sách index cho sliding window
-        self.sample_indices = []
-        total_timesteps = len(self.feature_files)
-        for i in range(total_timesteps - time_in - time_out + 1):
-            self.sample_indices.append(i)
-
-    def __len__(self):
-        return len(self.sample_indices)
-
-    def __getitem__(self, idx):
-        start_idx = self.sample_indices[idx]
-
-        # Load input sequence
-        X_list = []
-        for i in range(start_idx, start_idx + self.time_in):
-            feat = np.load(os.path.join(self.feature_dir, self.feature_files[i]))  # [H,W,C]
-            feat = np.transpose(feat, (2,0,1))  # [C,H,W]
-            X_list.append(feat)
-        X = np.stack(X_list, axis=0)  # [time_in, C, H, W]
-
-        # Load output sequence
-        Y_list = []
-        for i in range(start_idx + self.time_in, start_idx + self.time_in + self.time_out):
-            targ = np.load(os.path.join(self.target_dir, self.target_files[i]))  # [H,W,C] (C=1)
-            targ = np.transpose(targ, (2,0,1))  # [C,H,W]
-            Y_list.append(targ)
-        Y = np.stack(Y_list, axis=0)  # [time_out, C, H, W]
-
-        return torch.FloatTensor(X), torch.FloatTensor(Y)
-
-# ------------------- ConvLSTM Cell -------------------
 class ConvLSTMCell(nn.Module):
     def __init__(self, input_dim, hidden_dim, kernel_size, bias=True):
         super().__init__()
@@ -90,8 +32,6 @@ class ConvLSTMCell(nn.Module):
         H, W = image_size
         return (torch.zeros(batch_size, self.hidden_dim, H, W, device=device),
                 torch.zeros(batch_size, self.hidden_dim, H, W, device=device))
-
-# ------------------- ConvLSTM -------------------
 class ConvLSTM(nn.Module):
     def __init__(self, input_dim, hidden_dim, kernel_size, num_layers,
                  batch_first=True, bias=True, return_all_layers=False):
@@ -135,7 +75,6 @@ class ConvLSTM(nn.Module):
             last_state_list = last_state_list[-1:]
         return layer_output_list, last_state_list
 
-# ------------------- Forecaster -------------------
 class ConvLSTMForecaster(nn.Module):
     def __init__(self, input_channels, hidden_dims=[64,32,16], kernel_size=3, dropout_rate=0.2):
         super().__init__()

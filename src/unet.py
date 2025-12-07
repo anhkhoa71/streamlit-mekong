@@ -1,16 +1,5 @@
-import numpy as np
 import torch
 import torch.nn as nn
-import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader
-import matplotlib.pyplot as plt
-from typing import Tuple, List, Optional
-from tqdm import tqdm
-import warnings
-
-warnings.filterwarnings("ignore")
-
-# ==================== MODEL ====================
 class UNet(nn.Module):
     def __init__(self, in_channels=21, out_channels=21, features=[64, 128, 256, 512]):
         super(UNet, self).__init__()
@@ -23,16 +12,14 @@ class UNet(nn.Module):
             in_channels = feature
 
         # Bottleneck
-        self.bottleneck = self._conv_block(features[-1], features[-1] * 2)
+        self.bottleneck = self._conv_block(features[-1], features[-1]*2)
 
         # Decoder
         self.upconv_layers = nn.ModuleList()
         self.decoder_layers = nn.ModuleList()
         for feature in reversed(features):
-            self.upconv_layers.append(
-                nn.ConvTranspose2d(feature * 2, feature, kernel_size=2, stride=2)
-            )
-            self.decoder_layers.append(self._conv_block(feature * 2, feature))
+            self.upconv_layers.append(nn.ConvTranspose2d(feature*2, feature, kernel_size=2, stride=2))
+            self.decoder_layers.append(self._conv_block(feature*2, feature))
 
         # Output layer
         self.final_conv = nn.Conv2d(features[0], out_channels, kernel_size=1)
@@ -71,7 +58,7 @@ class UNet(nn.Module):
             nn.ReLU(inplace=True),
             nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
             nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(inplace=True)
         )
 
     def _crop_to_fit(self, x, target):
@@ -88,6 +75,3 @@ class UNet(nn.Module):
         # Crop nếu x lớn hơn target
         x = x[:, :, :H, :W]
         return x
-
-
-
